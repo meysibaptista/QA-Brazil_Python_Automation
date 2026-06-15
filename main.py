@@ -30,44 +30,61 @@ class TestUrbanRoutes:
     def setup_method    (self):
         self.driver.get(data.URBAN_ROUTES_URL)
         self.page = UrbanRoutesPage (self.driver)
+        self.page.enter_locations(data.ADDRESS_FROM, data.ADDRESS_TO)
 
     def test_set_route(self):
-        self.page.enter_locations(data.ADDRESS_FROM, data.ADDRESS_TO)
         assert self.page.get_from_location() == data.ADDRESS_FROM
         assert self.page.get_to_location() == data.ADDRESS_TO
 
     def test_select_plan(self):
-        # Adicionar em S8
-        print("Função criada para selecionar plano")
-        pass
+        self.page.click_taxi_option()
+        self.page.click_comfort_icon()
+        assert self.page.click_comfort_active()
 
     def test_fill_phone_number(self):
-        # Adicionar em S8
-        print("Função criada para inserir número de telefone")
-        pass
+        self.page.click_taxi_option()
+        self.page.click_comfort_icon()
+        assert self.page.click_comfort_active()
+        self.page.click_phone_button()
+        self.page.fill_phone_field(data.PHONE_NUMBER)
+        assert self.page.get_phone_value() == data.PHONE_NUMBER
 
     def test_fill_card(self):
-        # Adicionar em S8
-        print("Função criada para inserir número de cartão")
-        pass
+        self.page.click_taxi_option()
+        self.page.click_comfort_icon()
+        assert self.page.click_comfort_active()
+        self.page.open_payment_method()
+        self.page.click_add_card()
+        self.page.fill_card_number(data.CARD_NUMBER)
+        self.page.fill_card_code(data.CARD_CODE)
+        assert self.page.get_card_value() == data.CARD_CODE
+        self.page.confirm_add_card()
 
     def test_comment_for_driver(self):
-        # Adicionar em S8
-        print("Função criada para inserir comentário para o motorista")
-        pass
+        self.page.click_taxi_option()
+        self.page.click_comfort_icon()
+        assert self.page.click_comfort_active()
+        self.page.click_comment_button()
+        self.page.fill_comment_field(data.MESSAGE_FOR_DRIVER)
+        assert self.page.get_comment_value() == data.MESSAGE_FOR_DRIVER
+        time.sleep(10)
 
 
     def test_order_blanket_and_handkerchiefs(self):
-        # Adicionar em S8
-        print("Função criada para adicionar cobertores e/ou lenços")
-        pass
+        self.page.click_taxi_option()
+        self.page.click_comfort_icon()
+        assert self.page.click_comfort_active()
+        self.page.click_blanket_toggle()
+
 
     def test_order_2_ice_creams(self):
         munbers_of_ice_creams = 2
-        for count in range(munbers_of_ice_creams):
-            # Adicionar em S8
-            print("Função criada para adicionar quantidade de sorvete")
-            pass
+        self.page.click_taxi_option()
+        self.page.click_comfort_icon()
+        assert self.page.click_comfort_active()
+        self.page.add_two_icecreams()
+        assert self.page.get_icecream_value() == 2
+
 
     def test_car_search_model_appears(self):
         # Adicionar em S8
