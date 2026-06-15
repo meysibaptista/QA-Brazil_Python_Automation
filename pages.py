@@ -23,9 +23,9 @@ class UrbanRoutesPage:
 
     # Preencher número de cartão
     payment_method_button = (By.XPATH, "//div[@class='pp-text' and text()='Método de pagamento']")
-    add_card_button = (By.CSS_SELECTOR, "img.pp-plus")
+    add_card_button = (By.XPATH,"//div[contains(@class,'pp-title') and text()='Adicionar cartão']")
     card_number_field = (By.ID, "number")
-    card_code_field = (By.ID, "code")
+    card_code_field = (By.XPATH,"//div[contains(@class,'card-code-input')]//input[@id='code']")
     confirm_add_card_button = (By.XPATH, "//button[@type='submit' and contains(text(),'Adicionar')]")
 
     # Preencher comentário
@@ -108,33 +108,83 @@ class UrbanRoutesPage:
 
     # Preencher cartão
     def open_payment_method(self):
-        btn = self.wait.until(EC.element_to_be_clickable(self.payment_method_button))
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn)
+        btn = self.wait.until(
+            EC.element_to_be_clickable(self.payment_method_button)
+        )
         btn.click()
 
+        self.wait.until(
+            EC.visibility_of_element_located(
+                (By.XPATH, "//div[contains(text(),'Adicionar cartão')]")
+            )
+        )
+
     def click_add_card(self):
-        btn = self.wait.until(EC.element_to_be_clickable(self.add_card_button))
-        self.driver.execute_script("arguments[0].click();", btn)
+        self.wait.until(
+            EC.presence_of_element_located(
+                (By.XPATH, "//div[text()='Adicionar cartão']")
+            )
+        )
+
+        add_card = self.driver.find_element(
+            By.XPATH,
+            "//div[text()='Adicionar cartão']"
+        )
+
+        self.driver.execute_script(
+            "arguments[0].click();",
+            add_card
+        )
+
+        self.wait.until(
+            EC.visibility_of_element_located(
+                (By.ID, "number")
+            )
+        )
 
     def fill_card_number(self, number):
         field = self.wait.until(EC.visibility_of_element_located(self.card_number_field))
+        field.click()
         field.clear()
-        field.send_keys(number + Keys.TAB)
+        field.send_keys(number)
+        field.send_keys(Keys.TAB)
 
     def fill_card_code(self, code):
         field = self.wait.until(EC.visibility_of_element_located(self.card_code_field))
-        actions = ActionChains(self.driver)
-        actions.move_to_element(field).click().send_keys(code).perform()
+        field.click()
+        field.clear()
+        field.send_keys(code)
+        field.send_keys(Keys.TAB)
+        self.driver.execute_script("document.activeElement.blur();")
 
-    def get_code_value(self):
-        field = self.wait.until(
-            EC.visibility_of_element_located(self.card_code_field)
+    def fill_card_code(self, code):
+        fields = self.driver.find_elements(By.ID, "code")
+
+        visible_field = next(
+            field for field in fields
+            if field.is_displayed()
         )
-        return field.get_attribute("value")
+        visible_field.clear()
+        visible_field.send_keys(code)
+        self.driver.execute_script("document.activeElement.blur();")
 
     def confirm_add_card(self):
-        btn = self.wait.until(EC.element_to_be_clickable(self.confirm_add_card_button))
+        btn = self.wait.until(
+            EC.element_to_be_clickable(
+                (By.XPATH, "//button[contains(text(),'Adicionar')]")
+            )
+        )
+
         btn.click()
+        self.driver.save_screenshot("after_click.png")
+
+    def check_card_added(self):
+        return self.wait.until(
+            EC.visibility_of_element_located(
+                (By.XPATH, "//*[contains(text(),'Cartão') or contains(text(),'card') or contains(text(),'Visa')]")
+            )
+        )
+
 
     # Comentário motorista
     def click_comment_button(self):

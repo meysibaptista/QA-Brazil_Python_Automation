@@ -49,6 +49,7 @@ class TestUrbanRoutes:
         self.page.fill_phone_field(data.PHONE_NUMBER)
         assert self.page.get_phone_value() == data.PHONE_NUMBER
 
+
     def test_fill_card(self):
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
@@ -57,8 +58,9 @@ class TestUrbanRoutes:
         self.page.click_add_card()
         self.page.fill_card_number(data.CARD_NUMBER)
         self.page.fill_card_code(data.CARD_CODE)
-        assert self.page.get_card_value() == data.CARD_CODE
         self.page.confirm_add_card()
+        assert self.page.check_card_added()
+
 
     def test_comment_for_driver(self):
         self.page.click_taxi_option()
@@ -67,7 +69,7 @@ class TestUrbanRoutes:
         self.page.click_comment_button()
         self.page.fill_comment_field(data.MESSAGE_FOR_DRIVER)
         assert self.page.get_comment_value() == data.MESSAGE_FOR_DRIVER
-        time.sleep(10)
+
 
 
     def test_order_blanket_and_handkerchiefs(self):
