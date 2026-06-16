@@ -27,6 +27,7 @@ class TestUrbanRoutes:
     def _start_comfort_flow(self):
         self.page.enter_locations(data.ADDRESS_FROM, data.ADDRESS_TO)
 
+
     def setup_method    (self):
         self.driver.get(data.URBAN_ROUTES_URL)
         self.page = UrbanRoutesPage (self.driver)
@@ -44,23 +45,22 @@ class TestUrbanRoutes:
     def test_fill_phone_number(self):
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
-        assert self.page.click_comfort_active()
-        self.page.click_phone_button()
-        self.page.fill_phone_field(data.PHONE_NUMBER)
-        assert self.page.get_phone_value() == data.PHONE_NUMBER
-
+        self.page.click_number_text(data.PHONE_NUMBER)
+        assert data.PHONE_NUMBER in self.page.numero_confirmado()
 
     def test_fill_card(self):
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
-        assert self.page.click_comfort_active()
+        self.page.click_comfort_active()
         self.page.open_payment_method()
         self.page.click_add_card()
         self.page.fill_card_number(data.CARD_NUMBER)
         self.page.fill_card_code(data.CARD_CODE)
         self.page.confirm_add_card()
-        assert self.page.check_card_added()
-
+        self.page.check_card_added()
+        self.page.close_button()
+        self.page.confirm_cartao()
+        assert "Cartão" in self.page.confirm_cartao()
 
     def test_comment_for_driver(self):
         self.page.click_taxi_option()
@@ -70,14 +70,11 @@ class TestUrbanRoutes:
         self.page.fill_comment_field(data.MESSAGE_FOR_DRIVER)
         assert self.page.get_comment_value() == data.MESSAGE_FOR_DRIVER
 
-
-
     def test_order_blanket_and_handkerchiefs(self):
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
         assert self.page.click_comfort_active()
         self.page.click_blanket_toggle()
-
 
     def test_order_2_ice_creams(self):
         munbers_of_ice_creams = 2
@@ -87,11 +84,31 @@ class TestUrbanRoutes:
         self.page.add_two_icecreams()
         assert self.page.get_icecream_value() == 2
 
-
     def test_car_search_model_appears(self):
-        # Adicionar em S8
-        print("Função criada para exibir modelo do carro")
-        pass
+        self.page.click_taxi_option()
+        self.page.click_comfort_icon()
+
+        self.page.click_number_text(data.PHONE_NUMBER)
+
+        self.page.open_payment_method()
+        self.page.click_add_card()
+        self.page.fill_card_number(data.CARD_NUMBER)
+        self.page.fill_card_code(data.CARD_CODE)
+        self.page.confirm_add_card()
+        self.page.check_card_added()
+        self.page.close_button()
+        self.page.confirm_cartao()
+
+        self.page.click_comment_button()
+        self.page.fill_comment_field(data.MESSAGE_FOR_DRIVER)
+
+        self.page.click_blanket_toggle()
+
+        self.page.add_two_icecreams()
+
+        self.page.call_taxi()
+        assert "Buscar carro" in self.page.pop_up_show()
+
 
     def teardown_class(cls):
         cls.driver.quit()

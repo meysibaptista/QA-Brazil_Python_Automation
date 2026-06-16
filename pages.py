@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.keys import Keys
+from helpers import retrieve_phone_code
 import time
 
 class UrbanRoutesPage:
@@ -18,8 +19,12 @@ class UrbanRoutesPage:
     comfort_active = (By.XPATH, "//div[contains(@class,'tcard') and contains(@class,'active')]//div[text()='Comfort']")
 
     # Preencher número de telefone
-    phone_button = (By.XPATH, "//div[@class='np-button']//div[contains(text(), 'Número de telefone')]")
-    phone_input_field = (By.ID, "phone")
+    number_text_locator = (By.CSS_SELECTOR, '.np-button')
+    number_enter = (By.ID, 'phone')
+    number_confirm = (By.CSS_SELECTOR, '.button.full')
+    number_code = (By.ID, 'code')
+    code_confirm = (By.XPATH, '//button[contains(text(),"Confirmar")]')
+    number_finish = (By.CSS_SELECTOR, '.np-text')
 
     # Preencher número de cartão
     payment_method_button = (By.XPATH, "//div[@class='pp-text' and text()='Método de pagamento']")
@@ -27,6 +32,8 @@ class UrbanRoutesPage:
     card_number_field = (By.ID, "number")
     card_code_field = (By.XPATH,"//div[contains(@class,'card-code-input')]//input[@id='code']")
     confirm_add_card_button = (By.XPATH, "//button[@type='submit' and contains(text(),'Adicionar')]")
+    close_button_card = (By.CSS_SELECTOR, '.payment-picker.open .close-button')
+    comfirm_card = (By.CSS_SELECTOR, '.pp-value-text')
 
     # Preencher comentário
     comment_label = (By.CSS_SELECTOR, 'label[for="comment"]')
@@ -38,6 +45,10 @@ class UrbanRoutesPage:
     # Escolher quantidade de sorvete
     icecream_plus = (By.XPATH, "//div[text()='Sorvete']/following::div[@class='counter-plus'][1]")
     icecream_value = (By.XPATH, "//div[text()='Sorvete']/following::div[@class='counter-value'][1]")
+
+    # Model
+    call_taxi_button = (By.CSS_SELECTOR, '.smart-button')
+    pop_up = (By.CSS_SELECTOR, '.order-header-title')
 
     def __init__ (self, driver):
         self.driver = driver
@@ -58,6 +69,7 @@ class UrbanRoutesPage:
         element = self._find(locator)
         element.clear()
         element.send_keys(text)
+
     # Adress
 
     def _get_text(selfself, locator):
@@ -93,18 +105,26 @@ class UrbanRoutesPage:
             return False
 
     # Preencher telefone
-    def click_phone_button(self):
-        element = self.wait.until(
-            EC.visibility_of_element_located(self.phone_button)
+    def click_number_text(self, telefone):
+        self.driver.find_element(*self.number_text_locator).click() #Clica no número
+
+        self.driver.find_element(*self.number_enter).send_keys(telefone)  #Digita o número
+
+        self.driver.find_element(*self.number_confirm).click() #Confirma o número
+
+        code = retrieve_phone_code(self.driver) #Digita o código
+        code_input = WebDriverWait(self.driver, 3).until(
+            EC.visibility_of_element_located(self.number_code)
         )
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
-        self._click(self.phone_button)
+        code_input.clear()
+        code_input.send_keys(code)
 
-    def fill_phone_field(self, phone_number):
-        self._type(self.phone_input_field, phone_number)
+        self.driver.find_element(*self.code_confirm).click()#Confirma
 
-    def get_phone_value(self):
-        return self._get_value(self.phone_input_field)
+    def numero_confirmado(self):
+        numero = WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located(self.number_finish))
+        return numero.text
 
     # Preencher cartão
     def open_payment_method(self):
@@ -149,13 +169,6 @@ class UrbanRoutesPage:
         field.send_keys(number)
         field.send_keys(Keys.TAB)
 
-    def fill_card_code(self, code):
-        field = self.wait.until(EC.visibility_of_element_located(self.card_code_field))
-        field.click()
-        field.clear()
-        field.send_keys(code)
-        field.send_keys(Keys.TAB)
-        self.driver.execute_script("document.activeElement.blur();")
 
     def fill_card_code(self, code):
         fields = self.driver.find_elements(By.ID, "code")
@@ -184,6 +197,12 @@ class UrbanRoutesPage:
                 (By.XPATH, "//*[contains(text(),'Cartão') or contains(text(),'card') or contains(text(),'Visa')]")
             )
         )
+
+    def close_button(self):
+        return self.driver.find_element(*self.close_button_card).click()
+
+    def confirm_cartao(self):
+        return self.driver.find_element(*self.comfirm_card).text
 
 
     # Comentário motorista
@@ -228,3 +247,13 @@ class UrbanRoutesPage:
             EC.visibility_of_element_located(self.icecream_value)
         )
         return int(value.text)
+
+    # Model
+
+    def call_taxi(self):
+        self.driver.find_element(*self.call_taxi_button).click()
+
+    def pop_up_show(self):
+        pop_up = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located(self.pop_up))
+        return pop_up.text
