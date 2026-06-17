@@ -14,99 +14,145 @@ class TestUrbanRoutes:
     @classmethod
     def setup_class(cls):
         from selenium.webdriver import DesiredCapabilities
+
         capabilities = DesiredCapabilities.CHROME
         capabilities["goog:loggingPrefs"] = {'performance': 'ALL'}
+
         cls.driver = webdriver.Chrome()
         cls.driver.implicitly_wait(10)
+
+        cls.page = UrbanRoutesPage(cls.driver)
 
         if helpers.is_url_reachable(data.URBAN_ROUTES_URL):
             print("Conectado ao servidor Urban Routes")
         else:
-            print("Não foi possível conectar ao Urban Routes. Verifique se o servidor está ligado e ainda em execução")
-
-    def _start_comfort_flow(self):
-        self.page.enter_locations(data.ADDRESS_FROM, data.ADDRESS_TO)
-
-
-    def setup_method    (self):
-        self.driver.get(data.URBAN_ROUTES_URL)
-        self.page = UrbanRoutesPage (self.driver)
-        self.page.enter_locations(data.ADDRESS_FROM, data.ADDRESS_TO)
-
+            print(
+                "Não foi possível conectar ao Urban Routes. "
+                "Verifique se o servidor está ligado e ainda em execução"
+            )
     def test_set_route(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+
+        self.page.enter_locations(
+            data.ADDRESS_FROM,
+            data.ADDRESS_TO
+        )
+
         assert self.page.get_from_location() == data.ADDRESS_FROM
         assert self.page.get_to_location() == data.ADDRESS_TO
 
+
     def test_select_plan(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        self.page.enter_locations(
+            data.ADDRESS_FROM,
+            data.ADDRESS_TO
+        )
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
         assert self.page.click_comfort_active()
 
+
     def test_fill_phone_number(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        self.page.enter_locations(
+            data.ADDRESS_FROM,
+            data.ADDRESS_TO
+        )
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
         self.page.click_number_text(data.PHONE_NUMBER)
         assert data.PHONE_NUMBER in self.page.numero_confirmado()
 
+
     def test_fill_card(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+
+        self.page.enter_locations(
+            data.ADDRESS_FROM,
+            data.ADDRESS_TO
+        )
+
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
-        self.page.click_comfort_active()
-        self.page.open_payment_method()
-        self.page.click_add_card()
-        self.page.fill_card_number(data.CARD_NUMBER)
-        self.page.fill_card_code(data.CARD_CODE)
-        self.page.confirm_add_card()
-        self.page.check_card_added()
-        self.page.close_button()
-        self.page.confirm_cartao()
-        assert "Cartão" in self.page.confirm_cartao()
+
+        self.page.add_payment_card(
+            data.CARD_NUMBER,
+            data.CARD_CODE
+        )
+
+        assert "Cartão" in self.page.get_payment_method_text()
+
 
     def test_comment_for_driver(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        self.page.enter_locations(
+            data.ADDRESS_FROM,
+            data.ADDRESS_TO
+        )
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
-        assert self.page.click_comfort_active()
+
         self.page.click_comment_button()
         self.page.fill_comment_field(data.MESSAGE_FOR_DRIVER)
         assert self.page.get_comment_value() == data.MESSAGE_FOR_DRIVER
 
+
     def test_order_blanket_and_handkerchiefs(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+        self.page.enter_locations(
+            data.ADDRESS_FROM,
+            data.ADDRESS_TO
+        )
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
-        assert self.page.click_comfort_active()
+
         self.page.click_blanket_toggle()
+        assert self.page.is_blanket_selected()
+
 
     def test_order_2_ice_creams(self):
-        munbers_of_ice_creams = 2
+        self.driver.get(data.URBAN_ROUTES_URL)
+
+        self.page.enter_locations(
+            data.ADDRESS_FROM,
+            data.ADDRESS_TO
+        )
+
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
-        assert self.page.click_comfort_active()
-        self.page.add_two_icecreams()
+
+        self.page.add_icecreams(2)
         assert self.page.get_icecream_value() == 2
 
+
     def test_car_search_model_appears(self):
+        self.driver.get(data.URBAN_ROUTES_URL)
+
+        self.page.enter_locations(
+            data.ADDRESS_FROM,
+            data.ADDRESS_TO
+        )
+
         self.page.click_taxi_option()
         self.page.click_comfort_icon()
 
         self.page.click_number_text(data.PHONE_NUMBER)
 
-        self.page.open_payment_method()
-        self.page.click_add_card()
-        self.page.fill_card_number(data.CARD_NUMBER)
-        self.page.fill_card_code(data.CARD_CODE)
-        self.page.confirm_add_card()
-        self.page.check_card_added()
-        self.page.close_button()
-        self.page.confirm_cartao()
+        self.page.add_payment_card(
+            data.CARD_NUMBER,
+            data.CARD_CODE
+        )
 
-        self.page.click_comment_button()
-        self.page.fill_comment_field(data.MESSAGE_FOR_DRIVER)
+        self.page.add_driver_comment(
+            data.MESSAGE_FOR_DRIVER
+        )
 
-        self.page.click_blanket_toggle()
-
-        self.page.add_two_icecreams()
+        self.page.request_blanket_and_sheets()
+        self.page.add_icecreams()
 
         self.page.call_taxi()
+
         assert "Buscar carro" in self.page.pop_up_show()
 
 

@@ -204,8 +204,20 @@ class UrbanRoutesPage:
     def confirm_cartao(self):
         return self.driver.find_element(*self.comfirm_card).text
 
+    def add_payment_card(self, number, code):
+        self.open_payment_method()
+        self.click_add_card()
+        self.fill_card_number(number)
+        self.fill_card_code(code)
+        self.confirm_add_card()
+        self.check_card_added()
+        self.close_button()
+
+    def get_payment_method_text(self):
+        return self.confirm_cartao()
 
     # Comentário motorista
+
     def click_comment_button(self):
         label = self.wait.until(
             EC.element_to_be_clickable(self.comment_label)
@@ -225,7 +237,12 @@ class UrbanRoutesPage:
         )
         return field.get_attribute("value")
 
+    def add_driver_comment(self, message):
+        self.click_comment_button()
+        self.fill_comment_field(message)
+
     # Adicionar cobertores e lençois
+
     def click_blanket_toggle(self):
         element = self.wait.until(
             EC.element_to_be_clickable(self.blanket_toggle)
@@ -233,14 +250,24 @@ class UrbanRoutesPage:
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
         element.click()
 
+    def request_blanket_and_sheets(self):
+        self.click_blanket_toggle()
+
+    def is_blanket_selected(self):
+        checkbox = self.driver.find_element(
+            By.CSS_SELECTOR,
+            "input.switch-input"
+        )
+        return checkbox.is_selected()
+
     # Adicionar quantidade de sorvete
-    def add_two_icecreams(self):
+    def add_icecreams(self, amount=2):
         plus_button = self.wait.until(
             EC.element_to_be_clickable(self.icecream_plus)
         )
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", plus_button)
-        plus_button.click()
-        plus_button.click()
+
+        for _ in range(amount):
+            plus_button.click()
 
     def get_icecream_value(self):
         value = self.wait.until(
